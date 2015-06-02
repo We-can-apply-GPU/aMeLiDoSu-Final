@@ -21,7 +21,7 @@ def infile():
                 chmap(_str[i].lower())
 
 def chmap(_str):
-    tim = open('data/MLDS_Final/conf/timit.chmap','r')
+    tim = open('data/conf/timit.chmap','r')
     for line in tim:
         l = line.split()
         if l[0] == _str:
