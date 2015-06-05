@@ -73,9 +73,9 @@ else
 fi
 
 if [ $to -eq 60 ]; then
-  cat input | sed -r 's/h#/sil/g' > input
+  cat input | sed -r 's/h#/sil/g' > tmp 
+  mv tmp input
 fi
-cat input
 
 rm -f input.log
 j=0
@@ -92,6 +92,7 @@ do
   j=$((j+1))
 done
 echo "$j 0" >> input.log
+rm input
 
 fstcompile --isymbols=phones_disambig.txt --osymbols=phones_disambig.txt input.log | \
   fstarcsort --sort_type=olabel > input.fst
@@ -102,6 +103,7 @@ fstcompose input.fst Lexicon.${to}.fst | \
   fstprint --isymbols=phones_disambig.txt --osymbols=words.txt | \
   cut -f4 | grep -v "<eps>" | grep -v "0" | tac | tr '\n' ' '
 echo
+rm input.fst input.log
 
 # use the following command to draw the fst.
 # fstdraw --isymbols=phones_disambig.txt --osymbols=phones_disambig.txt -portrait input.fst | \
