@@ -20,13 +20,13 @@ do
 done
 
 if [ $to -eq 60 ]; then
-  cut -f1 phones.60-48-39.map | sed -r 's/h#/sil/g'  | sort | uniq > phone_list
+  cut -f1 phones.60-48-39.map | sed -r 's/bcl|dcl|epi|gcl|h#|kcl|pau|pcl|tcl/sil/g' | sort | uniq > phone_list
 fi
 if [ $to -eq 48 ]; then
-  cut -f2 phones.60-48-39.map | grep -v "q" | sort | uniq > phone_list
+  cut -f2 phones.60-48-39.map | sed -r 's/vcl|epi|cl/sil/g' | sort | uniq > phone_list
 fi
 if [ $to -eq 39 ]; then
-  cut -f3 phones.60-48-39.map | grep -v "q" | sort | uniq > phone_list
+  cut -f3 phones.60-48-39.map | sort | uniq > phone_list
 fi
 
 echo "<eps> 0" > phones_num
@@ -72,9 +72,8 @@ else
   ./timit_norm_trans.pl -i $input -m phones.60-48-39.map -from 60 -to $to > input
 fi
 
-if [ $to -eq 60 ]; then
-  cat input | sed -r 's/h#/sil/g' > tmp 
-  mv tmp input
+if [ ! $to -eq 39 ]; then
+  python trans.py $to
 fi
 
 rm -f input.log
@@ -92,7 +91,6 @@ do
   j=$((j+1))
 done
 echo "$j 0" >> input.log
-rm input
 
 fstcompile --isymbols=phones_disambig.txt --osymbols=phones_disambig.txt input.log | \
   fstarcsort --sort_type=olabel > input.fst
