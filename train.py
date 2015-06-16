@@ -64,21 +64,20 @@ def create_iter_functions(data, output_layer):
 
     loss_train = objective.get_loss(X_batch, target=Y_batch) + param_rms * 100
 
-    pred = T.argmax(T.dot(lasagne.layers.get_output(output_layer, X_batch, deterministic=True), trans), axis=1)
-    accuracy = T.mean(T.eq(pred, transmap[Y_batch]), dtype=theano.config.floatX)
+    pred48 = T.argmax(T.dot(lasagne.layers.get_output(output_layer, X_batch, deterministic=True), trans), axis=1)
+    pred1943 = T.argmax(lasagne.layers.get_output(output_layer, X_batch, deterministic=True), axis = 1)
+    accuracy48 = T.mean(T.eq(pred48, transmap[Y_batch]), dtype=theano.config.floatX)
+    accuracy1943 = T.mean(T.eq(pred1943, Y_batch), dtype=theano.config.floatX)
+
 
     updates = lasagne.updates.rmsprop(loss_train, all_params, LEARNING_RATE)
 
     iter_train = theano.function(
-        [X_batch, Y_batch], accuracy, updates=updates,
-        givens={
-            trans: data['trans'],
-            transmap: data['transmap']
-        }
+        [X_batch, Y_batch], accuracy1943, updates=updates,
     )
 
     iter_valid = theano.function(
-        [X_batch, Y_batch], accuracy,
+        [X_batch, Y_batch], accuracy48,
         givens={
             trans: data['trans'],
             transmap: data['transmap']
@@ -117,7 +116,7 @@ def main():
             accu += iter_funcs['train'](X, Y)
             cnt += 1
         accu = accu / cnt
-        print("Epoch {} took {:.3f}s\t{:.2f}%".format(epoch+1, time.time() - now, accu * 100))
+        print("Epoch {} took {:.3f}s\t{:.2f}%(1943)".format(epoch+1, time.time() - now, accu * 100))
 
         accu = 0
         cnt = 0
@@ -129,7 +128,8 @@ def main():
             accu += iter_funcs['valid'](X, Y)
             cnt += 1
         accu = accu / cnt
-        print("Valid {} took {:.3f}s\t{:.2f}%".format(epoch+1, time.time() - now, accu * 100))
+        print("Valid {} took {:.3f}s\t{:.2f}%(48)".format(epoch+1, time.time() - now, accu * 100))
+        print()
 
         epoch += 1
         import pickle

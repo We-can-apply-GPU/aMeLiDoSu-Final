@@ -1,9 +1,9 @@
 import lasagne
 MODEL_NAME = "4d1024"
-BATCH_SIZE = 1024 
+BATCH_SIZE = 1024
 MOMENTUM = 0.9
 NUM_HIDDEN_UNITS = [1024, 1024, 1024, 1024, 500]
-LEARNING_RATE = 0.0001
+LEARNING_RATE = 0.001
 def build_model(input_dim, output_dim, batch_size=BATCH_SIZE, num_hidden_units=NUM_HIDDEN_UNITS):
     l_in = lasagne.layers.InputLayer(shape=(BATCH_SIZE, input_dim))
     l_dp0 = lasagne.layers.DropoutLayer(l_in, p=0.5)
