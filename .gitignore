@@ -1,4 +1,6 @@
 data/
-*.pyc
 bin/
+model/
+*.pyc
+*.o
 
