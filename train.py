@@ -10,7 +10,6 @@ import time
 import random
 import collections
 from StringIO import StringIO
-from load_data import load_data
 from settings import *
 
 def load_data(fin, data):
