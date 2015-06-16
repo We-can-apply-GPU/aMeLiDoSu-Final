@@ -8,7 +8,6 @@ import theano.tensor as T
 import lasagne
 import time
 import random
-import collections
 from StringIO import StringIO
 from settings import *
 
