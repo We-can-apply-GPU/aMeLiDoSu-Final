@@ -55,13 +55,15 @@ def create_iter_functions(data, output_layer):
     objective = lasagne.objectives.Objective(output_layer, loss_function=lasagne.objectives.categorical_crossentropy)
 
     all_params = lasagne.layers.get_all_params(output_layer)
+    """
     param_rms = theano.shared(np.float32(0))
     for param in all_params:
         param_rms += T.mean(T.square(param))
 
     param_rms /= len(all_params)
+    """
 
-    loss_train = objective.get_loss(X_batch, target=Y_batch) + param_rms * 100
+    loss_train = objective.get_loss(X_batch, target=Y_batch)
 
     pred48 = T.argmax(T.dot(lasagne.layers.get_output(output_layer, X_batch, deterministic=True), trans), axis=1)
     pred1943 = T.argmax(lasagne.layers.get_output(output_layer, X_batch, deterministic=True), axis = 1)
@@ -86,7 +88,6 @@ def create_iter_functions(data, output_layer):
     return {"train": iter_train, "valid": iter_valid}
 
 def main():
-    print("Loading data...")
     data = {}
     trans, transmap = load_transition();
     data['trans'] = theano.shared(trans, borrow=True)
