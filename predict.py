@@ -33,7 +33,7 @@ def create_iter_functions(data, output_layer):
     X = T.matrix('x')
     trans = T.matrix('trans')
 
-    pred = T.dot(lasagne.layers.get_output(output_layer, X, deterministic=True), trans)
+    pred = T.log(T.dot(lasagne.layers.get_output(output_layer, X, deterministic=True), trans))
 
     return theano.function(
         [X], pred,
@@ -67,4 +67,4 @@ def main():
             print(file=fout)
 
 if __name__ == '__main__':
-  main()
+    main()
