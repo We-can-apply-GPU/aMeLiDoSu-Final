@@ -3,7 +3,7 @@ MODEL_NAME = "4d1024"
 BATCH_SIZE = 1024
 MOMENTUM = 0.9
 NUM_HIDDEN_UNITS = [1024, 1024, 1024, 1024, 500]
-LEARNING_RATE = 0.001
+LEARNING_RATE = 0.0005
 def build_model(input_dim, output_dim, batch_size=BATCH_SIZE, num_hidden_units=NUM_HIDDEN_UNITS):
     l_in = lasagne.layers.InputLayer(shape=(BATCH_SIZE, input_dim))
     l_dp0 = lasagne.layers.DropoutLayer(l_in, p=0.5)
@@ -12,25 +12,25 @@ def build_model(input_dim, output_dim, batch_size=BATCH_SIZE, num_hidden_units=N
             num_units=num_hidden_units[0],
             nonlinearity=lasagne.nonlinearities.rectify
             )
-    l_dp1 = lasagne.layers.DropoutLayer(l_hidden1, p=0.5)
+    l_dp1 = lasagne.layers.DropoutLayer(l_hidden1, p=0.6)
     l_hidden2 = lasagne.layers.DenseLayer(
             l_dp1,
             num_units=num_hidden_units[1],
             nonlinearity=lasagne.nonlinearities.rectify
             )
-    l_dp2 = lasagne.layers.DropoutLayer(l_hidden2, p=0.5)
+    l_dp2 = lasagne.layers.DropoutLayer(l_hidden2, p=0.6)
     l_hidden3 = lasagne.layers.DenseLayer(
             l_dp2,
             num_units=num_hidden_units[2],
             nonlinearity=lasagne.nonlinearities.rectify
             )
-    l_dp3 = lasagne.layers.DropoutLayer(l_hidden3, p=0.5)
+    l_dp3 = lasagne.layers.DropoutLayer(l_hidden3, p=0.6)
     l_hidden4 = lasagne.layers.DenseLayer(
             l_dp3,
             num_units=num_hidden_units[3],
             nonlinearity=lasagne.nonlinearities.rectify
             )
-    l_dp4 = lasagne.layers.DropoutLayer(l_hidden4, p=0.5)
+    l_dp4 = lasagne.layers.DropoutLayer(l_hidden4, p=0.7)
     """
     l_hidden5 = lasagne.layers.DenseLayer(
             l_dp4,
@@ -63,3 +63,20 @@ def build_model(input_dim, output_dim, batch_size=BATCH_SIZE, num_hidden_units=N
             nonlinearity=lasagne.nonlinearities.softmax
             )
     return l_out
+
+def load_transition():
+    file = open("data/conf/state_48_39.map");
+    trans = np.zeros((1943, 48), dtype=np.float32)
+    transmap = np.zeros((1943,), dtype=np.int32)
+    lines = file.readlines()
+    phones = dict()
+    for i, line in enumerate(lines):
+        lines[i] = line.split("\t")
+        phones[lines[i][1]]=0
+    phones = collections.OrderedDict(sorted(phones.items()))
+    for i, k in enumerate(phones):
+        phones[k] = i
+    for line in lines:
+        trans[int(line[0]), phones[line[1]]] = 1
+        transmap[int(line[0])] = phones[line[1]]
+    return trans, transmap

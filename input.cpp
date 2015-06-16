@@ -159,7 +159,7 @@ int main()
   std::shuffle(mapping.begin(), mapping.end(), g);
 
   int z=0;
-  for (; z<train.size()*5/6/50; z++)
+  for (; z<train.size()*5/6; z++)
   {
     if(z%10000==0) std::cout << z << std::endl;
     int i = mapping[z];
@@ -169,7 +169,7 @@ int main()
       trainout << std::to_string(train[i+2].ans)+" "+train[i].get_string()+" "+train[i+1].get_string()+" "+train[i+2].get_string()+" "+train[i+3].get_string()+" "+train[i+4].get_string() << std::endl;
   }
 
-  for (; z<train.size()/50; z++)
+  for (; z<train.size(); z++)
   {
     if(z%10000==0) std::cout << z << std::endl;
     int i = mapping[z];

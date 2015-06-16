@@ -29,23 +29,6 @@ def load_data(fin, data):
 
     return X, Y, OK, fin
 
-def load_transition():
-    file = open("data/conf/state_48_39.map");
-    trans = np.zeros((1943, 48), dtype=np.float32)
-    transmap = np.zeros((1943,), dtype=np.int32)
-    lines = file.readlines()
-    phones = dict()
-    for i, line in enumerate(lines):
-        lines[i] = line.split("\t")
-        phones[lines[i][1]]=0
-    phones = collections.OrderedDict(sorted(phones.items()))
-    for i, k in enumerate(phones):
-        phones[k] = i
-    for line in lines:
-        trans[int(line[0]), phones[line[1]]] = 1
-        transmap[int(line[0])] = phones[line[1]]
-    return trans, transmap
-
 def create_iter_functions(data, output_layer):
     X_batch = T.matrix('x')
     Y_batch = T.ivector('y')
@@ -55,13 +38,6 @@ def create_iter_functions(data, output_layer):
     objective = lasagne.objectives.Objective(output_layer, loss_function=lasagne.objectives.categorical_crossentropy)
 
     all_params = lasagne.layers.get_all_params(output_layer)
-    """
-    param_rms = theano.shared(np.float32(0))
-    for param in all_params:
-        param_rms += T.mean(T.square(param))
-
-    param_rms /= len(all_params)
-    """
 
     loss_train = objective.get_loss(X_batch, target=Y_batch)
 
