@@ -5,6 +5,7 @@
 #include <vector>
 #include <sstream>
 #include <algorithm>
+#include <list>
 #include "../include/trans.h"
 
 float trans_prob[48][48];
@@ -57,7 +58,8 @@ struct Phone
 
 struct State
 {
-  int route[1000];
+  int now_value;
+  State *pre_ptr;
   float score;
   bool operator < (const State &t) const
   {
@@ -65,14 +67,26 @@ struct State
   }
 };
 
+bool PointerCompare(const State *a, const State *b)
+{
+  return *a < *b;
+}
+
+const int SIZE = 50000000;
+State memory[SIZE];
+int top = 0;
+
 void viterbi(std::vector<Phone> &seq, int N, std::ofstream &fout)
 {
-  std::vector<State> pre[48], now[48];
+  std::vector<State*> pre[48], now[48];
   for (int j=0; j<48; j++)
   {
-    State tmp;
-    tmp.route[0] = j;
-    tmp.score = seq.front().features[j];
+    State *tmp = memory+top;
+    if (++top == SIZE)
+      top = 0;
+    tmp->now_value = j;
+    tmp->pre_ptr = NULL;
+    tmp->score = seq.front().features[j];
     pre[j].push_back(tmp);
   }
   int phone = 1;
@@ -84,18 +98,26 @@ void viterbi(std::vector<Phone> &seq, int N, std::ofstream &fout)
       for (int i=0; i<48; i++)
       {
         int z = 0;
-        for (auto p = pre[i].begin(); p != pre[i].end() && z < N; p++, z++)
+        for (auto p = pre[i].begin(); p != pre[i].end() && z < N; p++)
         {
-          State tmp;
-          int r = 0;
-          for (r=0; r<phone; r++)
-            tmp.route[r] = p->route[r];
-          tmp.route[r] = j;
-          tmp.score = p->score + it->features[j] + trans_prob[i][j];
+          State *tmp = memory+top++;
+          if (++top == SIZE)
+            top = 0;
+          tmp->now_value = j;
+          if (i == j)
+          {
+            tmp->pre_ptr = (*p)->pre_ptr;
+          }
+          else
+          {
+            tmp->pre_ptr = *p;
+          }
+          tmp->score = (*p)->score + it->features[j] + trans_prob[i][j];
           now[j].push_back(tmp);
+          z++;
         }
       }
-      std::sort(now[j].begin(), now[j].end());
+      std::sort(now[j].begin(), now[j].end(), PointerCompare);
     }
     for (int j=0; j<48; j++)
       pre[j] = now[j];
@@ -107,13 +129,20 @@ void viterbi(std::vector<Phone> &seq, int N, std::ofstream &fout)
     for (auto p = pre[i].begin(); p != pre[i].end(), z < N; p++, z++)
       now[0].push_back(*p);
   }
-  std::sort(now[0].begin(), now[0].end());
+  std::sort(now[0].begin(), now[0].end(), PointerCompare);
   int z = 0;
   for (auto p = now[0].begin(); p != now[0].end() && z < N; p++, z++)
   {
-    for (int i=0; i<seq.size(); i++)
-      fout << trans.index2b[p->route[i]] << " ";
-    fout << p->score << std::endl;
+    State *ptr = *p;
+    std::vector<int> to_reverse;
+    while(ptr != NULL)
+    {
+      to_reverse.push_back(ptr->now_value);
+      ptr = ptr->pre_ptr;
+    }
+    for (int i=to_reverse.size()-1; i>=0; i--)
+      fout << trans.index2b[to_reverse[i]] << " ";
+    fout << (*p)->score << std::endl;
   }
 }
 
@@ -135,7 +164,7 @@ int main()
     pre = next+1;
 
     int cnt = std::stoi(line.substr(pre));
-    std::cout << cnt << std::endl;
+    std::cout << seq_id << " " << cnt << std::endl;
     while(cnt--)
     {
       Phone tmp;
