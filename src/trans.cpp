@@ -15,17 +15,17 @@ Trans::Trans()
   {
     std::istringstream stream(line);
     int index;
-    std::string phone;
-    stream >> index >> phone;
+    std::string phone, _;
+    stream >> index >> _ >> phone;
     tmp[index] = phone;
-    b2index[phone] = 0;
+    a2index[phone] = 0;
   }
 
-  auto iter = b2index.begin();
-  for (int z=0; iter != b2index.end(); iter++, z++)
+  auto iter = a2index.begin();
+  for (int z=0; iter != a2index.end(); iter++, z++)
   {
     iter->second = z;
-    index2b[z] = iter->first;
+    index2a[z] = iter->first;
   }
-  for (int i=0; i<1943; i++) c2b[i] = b2index[tmp[i]];
+  for (int i=0; i<1943; i++) c2a[i] = a2index[tmp[i]];
 }

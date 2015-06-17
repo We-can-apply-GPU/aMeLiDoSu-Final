@@ -10,7 +10,7 @@ class Trans
    */
 public:
   Trans();
-  int c2b[1943];
-  std::map<std::string, int> b2index;
-  std::string index2b[48];
+  int c2a[1943];
+  std::map<std::string, int> a2index;
+  std::string index2a[39];
 };

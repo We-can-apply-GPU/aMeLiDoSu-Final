@@ -5,7 +5,7 @@ MODEL_NAME = "4d1024"
 BATCH_SIZE = 1024
 MOMENTUM = 0.9
 NUM_HIDDEN_UNITS = [1024, 1024, 1024, 1024, 500]
-LEARNING_RATE = 0.001
+LEARNING_RATE = 0.0001
 def build_model(input_dim, output_dim, batch_size=BATCH_SIZE, num_hidden_units=NUM_HIDDEN_UNITS):
     l_in = lasagne.layers.InputLayer(shape=(BATCH_SIZE, input_dim))
     l_dp0 = lasagne.layers.DropoutLayer(l_in, p=0.5)
@@ -68,17 +68,17 @@ def build_model(input_dim, output_dim, batch_size=BATCH_SIZE, num_hidden_units=N
 
 def load_transition():
     file = open("data/conf/state_48_39.map");
-    trans = np.zeros((1943, 48), dtype=np.float32)
+    trans = np.zeros((1943, 39), dtype=np.float32)
     transmap = np.zeros((1943,), dtype=np.int32)
     lines = file.readlines()
     phones = dict()
     for i, line in enumerate(lines):
         lines[i] = line.split("\t")
-        phones[lines[i][1]]=0
+        phones[lines[i][2]]=0
     phones = collections.OrderedDict(sorted(phones.items()))
     for i, k in enumerate(phones):
         phones[k] = i
     for line in lines:
-        trans[int(line[0]), phones[line[1]]] = 1
-        transmap[int(line[0])] = phones[line[1]]
+        trans[int(line[0]), phones[line[2]]] = 1
+        transmap[int(line[0])] = phones[line[2]]
     return trans, transmap

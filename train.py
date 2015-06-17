@@ -103,7 +103,7 @@ def main():
             accu += iter_funcs['valid'](X, Y)
             cnt += 1
         accu = accu / cnt
-        print("Valid {} took {:.3f}s\t{:.2f}%(48)".format(epoch+1, time.time() - now, accu * 100))
+        print("Valid {} took {:.3f}s\t{:.2f}%(39)".format(epoch+1, time.time() - now, accu * 100))
         print()
 
         epoch += 1

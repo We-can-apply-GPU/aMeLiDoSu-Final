@@ -8,7 +8,7 @@
 #include <list>
 #include "../include/trans.h"
 
-float trans_prob[48][48];
+float trans_prob[39][39];
 Trans trans;
 
 void load_trans_prob()
@@ -34,26 +34,26 @@ void load_trans_prob()
     pre = next+1;
 
     ans = line.substr(pre);
-    int now_ans = trans.b2index[ans];
+    int now_ans = trans.a2index[ans];
     if (phone_id == pre_id+1)
       trans_prob[pre_ans][now_ans] ++;
 
     pre_id = phone_id;
     pre_ans = now_ans;
   }
-  for (int i=0; i<48; i++)
+  for (int i=0; i<39; i++)
   {
     float sum = 0;
-    for (int j=0; j<48; j++)
+    for (int j=0; j<39; j++)
       sum += trans_prob[i][j];
-    for (int j=0; j<48; j++)
+    for (int j=0; j<39; j++)
       trans_prob[i][j] = std::log(trans_prob[i][j]/sum);
   }
 }
 
 struct Phone
 {
-  float features[48];
+  float features[39];
 };
 
 struct State
@@ -103,8 +103,8 @@ std::vector<int> mid;
 
 void viterbi1(std::vector<Phone> &seq)
 {
-  std::vector<State*> pre[48], now[48];
-  for (int j=0; j<48; j++)
+  std::vector<State*> pre[39], now[39];
+  for (int j=0; j<39; j++)
   {
     State *tmp = memory+top;
     if (++top == SIZE)
@@ -116,12 +116,12 @@ void viterbi1(std::vector<Phone> &seq)
   }
   for (auto it = seq.begin()+1; it != seq.end(); it++)
   {
-    for (int j=0; j<48; j++)
+    for (int j=0; j<39; j++)
     {
       now[j].clear();
-      for (int i=0; i<48; i++)
+      for (int i=0; i<39; i++)
       {
-        State *tmp = memory+top++;
+        State *tmp = memory+top;
         if (++top == SIZE)
           top = 0;
         tmp->now_value = j;
@@ -131,11 +131,11 @@ void viterbi1(std::vector<Phone> &seq)
       }
       std::sort(now[j].begin(), now[j].end(), PointerCompare);
     }
-    for (int j=0; j<48; j++)
+    for (int j=0; j<39; j++)
       pre[j] = now[j];
   }
   now[0].clear();
-  for (int i=0; i<48; i++)
+  for (int i=0; i<39; i++)
     now[0].push_back(pre[i].front());
   std::sort(now[0].begin(), now[0].end(), PointerCompare);
   State *ptr = now[0].front();
@@ -149,8 +149,8 @@ void viterbi1(std::vector<Phone> &seq)
 
 void viterbi2(std::vector<Phone> &seq, int N, std::ofstream &fout)
 {
-  std::vector<State*> pre[48], now[48];
-  for (int j=0; j<48; j++)
+  std::vector<State*> pre[39], now[39];
+  for (int j=0; j<39; j++)
   {
     State *tmp = memory+top;
     if (++top == SIZE)
@@ -163,16 +163,16 @@ void viterbi2(std::vector<Phone> &seq, int N, std::ofstream &fout)
   int phone = 1;
   for (auto it = seq.begin()+1; it != seq.end(); it++, phone++)
   {
-    for (int j=0; j<48; j++)
+    for (int j=0; j<39; j++)
     {
       now[j].clear();
-      for (int i=0; i<48; i++)
+      for (int i=0; i<39; i++)
       {
         if (i == j) continue;
         int z = 0;
         for (auto p = pre[i].begin(); p != pre[i].end() && z < N; p++)
         {
-          State *tmp = memory+top++;
+          State *tmp = memory+top;
           if (++top == SIZE)
             top = 0;
           tmp->now_value = j;
@@ -184,11 +184,11 @@ void viterbi2(std::vector<Phone> &seq, int N, std::ofstream &fout)
       }
       std::sort(now[j].begin(), now[j].end(), PointerCompare);
     }
-    for (int j=0; j<48; j++)
+    for (int j=0; j<39; j++)
       pre[j] = now[j];
   }
   now[0].clear();
-  for (int i=0; i<48; i++)
+  for (int i=0; i<39; i++)
   {
     int z = 0;
     for (auto p = pre[i].begin(); p != pre[i].end(), z < N; p++, z++)
@@ -206,7 +206,7 @@ void viterbi2(std::vector<Phone> &seq, int N, std::ofstream &fout)
       ptr = ptr->pre_ptr;
     }
     for (int i=to_reverse.size()-1; i>=0; i--)
-      fout << trans.index2b[to_reverse[i]] << " ";
+      fout << trans.index2a[to_reverse[i]] << " ";
     fout << (*p)->score << std::endl;
   }
 }
@@ -236,15 +236,20 @@ int main()
       getline(emissin, line);
       std::istringstream ss(line);
 
-      for (int i=0; i<48; i++)
+      for (int i=0; i<39; i++)
         ss >> tmp.features[i];
 
       seq.push_back(tmp);
     }
     viterbi1(seq);
+    /*
+    for (int z=mid.size()-1; z>=0; z--)
+      std::cout << trans.index2a[mid[z]] << " ";
+    std::cout << std::endl;
+    */
     std::vector<Phone> newseq;
     Phone tmp;
-    for (int i=0; i<48; i++) tmp.features[i] = 0;
+    for (int i=0; i<39; i++) tmp.features[i] = 0;
     int index = 0;
     cnt = 0;
     for (int z=mid.size()-1; z>=0; z--, index++)
@@ -252,18 +257,28 @@ int main()
       if (z == mid.size()-1 || mid[z] == mid[z+1])
       {
         cnt ++;
-        for (int i=0; i<48; i++) tmp.features[i] += std::exp(seq[index].features[i]);
+        for (int i=0; i<39; i++) tmp.features[i] += std::exp(seq[index].features[i]);
       }
       else
       {
-        for (int i=0; i<48; i++) tmp.features[i] = std::log(tmp.features[i] / cnt);
+        for (int i=0; i<39; i++) tmp.features[i] = std::log(tmp.features[i] / cnt);
         newseq.push_back(tmp);
-        for (int i=0; i<48; i++) tmp.features[i] = 0;
-        cnt = 0;
+        for (int i=0; i<39; i++) tmp.features[i] = std::exp(seq[index].features[i]);
+        cnt = 1;
       }
     }
-    for (int i=0; i<48; i++) tmp.features[i] = std::log(tmp.features[i] / cnt);
+    for (int i=0; i<39; i++) tmp.features[i] = std::log(tmp.features[i] / cnt);
     newseq.push_back(tmp);
+    /*
+    for (int i=0; i<newseq.size(); i++)
+    {
+      for (int j=0; j<39; j++)
+      {
+        fout << newseq[i].features[j] << " ";
+      }
+      fout << std::endl;
+    }
+    */
     viterbi2(newseq, N, fout);
   }
 }
