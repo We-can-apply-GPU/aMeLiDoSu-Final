@@ -177,7 +177,7 @@ int main()
   std::string line;
   while (getline(emissin, line))
   {
-    int N = 10;
+    int N = 5;
     std::vector<Phone> seq;
     size_t pre = 0, next;
     std::string seq_id;
@@ -199,6 +199,6 @@ int main()
 
       seq.push_back(tmp);
     }
-    viterbi(seq, 5, fout);
+    viterbi(seq, N, fout);
   }
 }
