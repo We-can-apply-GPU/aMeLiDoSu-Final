@@ -72,6 +72,30 @@ bool PointerCompare(const State *a, const State *b)
   return *a < *b;
 }
 
+bool OrderCompare(const State *a, const State *b)
+{
+  while(a != NULL && b != NULL)
+  {
+    if (a->now_value != b->now_value)
+      return a->now_value < b->now_value;
+    a = a->pre_ptr;
+    b = b->pre_ptr;
+  }
+  return 0;
+}
+
+bool OrderEqual(const State *a, const State *b)
+{
+  while(a != NULL && b != NULL)
+  {
+    if (a->now_value != b->now_value)
+      return 0;
+    a = a->pre_ptr;
+    b = b->pre_ptr;
+  }
+  return a == b;
+}
+
 const int SIZE = 50000000;
 State memory[SIZE];
 int top = 0;
@@ -105,18 +129,17 @@ void viterbi(std::vector<Phone> &seq, int N, std::ofstream &fout)
             top = 0;
           tmp->now_value = j;
           if (i == j)
-          {
             tmp->pre_ptr = (*p)->pre_ptr;
-          }
           else
-          {
             tmp->pre_ptr = *p;
-          }
           tmp->score = (*p)->score + it->features[j] + trans_prob[i][j];
           now[j].push_back(tmp);
           z++;
         }
       }
+      std::sort(now[j].begin(), now[j].end(), OrderCompare);
+      auto last = std::unique(now[j].begin(), now[j].end(), OrderEqual);
+      now[j].erase(last, now[j].end());
       std::sort(now[j].begin(), now[j].end(), PointerCompare);
     }
     for (int j=0; j<48; j++)
@@ -176,6 +199,6 @@ int main()
 
       seq.push_back(tmp);
     }
-    viterbi(seq, 10, fout);
+    viterbi(seq, 5, fout);
   }
 }
