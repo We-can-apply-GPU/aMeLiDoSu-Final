@@ -99,8 +99,55 @@ bool OrderEqual(const State *a, const State *b)
 const int SIZE = 50000000;
 State memory[SIZE];
 int top = 0;
+std::vector<int> mid;
 
-void viterbi(std::vector<Phone> &seq, int N, std::ofstream &fout)
+void viterbi1(std::vector<Phone> &seq)
+{
+  std::vector<State*> pre[48], now[48];
+  for (int j=0; j<48; j++)
+  {
+    State *tmp = memory+top;
+    if (++top == SIZE)
+      top = 0;
+    tmp->now_value = j;
+    tmp->pre_ptr = NULL;
+    tmp->score = seq.front().features[j];
+    pre[j].push_back(tmp);
+  }
+  for (auto it = seq.begin()+1; it != seq.end(); it++)
+  {
+    for (int j=0; j<48; j++)
+    {
+      now[j].clear();
+      for (int i=0; i<48; i++)
+      {
+        State *tmp = memory+top++;
+        if (++top == SIZE)
+          top = 0;
+        tmp->now_value = j;
+        tmp->pre_ptr = pre[i].front();
+        tmp->score = pre[i].front()->score + it->features[j] + trans_prob[i][j];
+        now[j].push_back(tmp);
+      }
+      std::sort(now[j].begin(), now[j].end(), PointerCompare);
+    }
+    for (int j=0; j<48; j++)
+      pre[j] = now[j];
+  }
+  now[0].clear();
+  for (int i=0; i<48; i++)
+    now[0].push_back(pre[i].front());
+  std::sort(now[0].begin(), now[0].end(), PointerCompare);
+  State *ptr = now[0].front();
+  mid.clear();
+  while(ptr != NULL)
+  {
+    mid.push_back(ptr->now_value);
+    ptr = ptr->pre_ptr;
+  }
+}
+
+void viterbi2(std::vector<Phone> &seq, int N, std::ofstream &fout)
 {
   std::vector<State*> pre[48], now[48];
   for (int j=0; j<48; j++)
@@ -121,25 +168,20 @@ void viterbi(std::vector<Phone> &seq, int N, std::ofstream &fout)
       now[j].clear();
       for (int i=0; i<48; i++)
       {
+        if (i == j) continue;
         int z = 0;
-        for (auto p = pre[i].begin(); p != pre[i].end() && z < 5*N; p++)
+        for (auto p = pre[i].begin(); p != pre[i].end() && z < N; p++)
         {
           State *tmp = memory+top++;
           if (++top == SIZE)
             top = 0;
           tmp->now_value = j;
-          if (i == j)
-            tmp->pre_ptr = (*p)->pre_ptr;
-          else
-            tmp->pre_ptr = *p;
+          tmp->pre_ptr = *p;
           tmp->score = (*p)->score + it->features[j] + trans_prob[i][j];
           now[j].push_back(tmp);
           z++;
         }
       }
-      std::sort(now[j].begin(), now[j].end(), OrderCompare);
-      auto last = std::unique(now[j].begin(), now[j].end(), OrderEqual);
-      now[j].erase(last, now[j].end());
       std::sort(now[j].begin(), now[j].end(), PointerCompare);
     }
     for (int j=0; j<48; j++)
@@ -149,7 +191,7 @@ void viterbi(std::vector<Phone> &seq, int N, std::ofstream &fout)
   for (int i=0; i<48; i++)
   {
     int z = 0;
-    for (auto p = pre[i].begin(); p != pre[i].end(), z < 5*N; p++, z++)
+    for (auto p = pre[i].begin(); p != pre[i].end(), z < N; p++, z++)
       now[0].push_back(*p);
   }
   std::sort(now[0].begin(), now[0].end(), PointerCompare);
@@ -199,6 +241,29 @@ int main()
 
       seq.push_back(tmp);
     }
-    viterbi(seq, N, fout);
+    viterbi1(seq);
+    std::vector<Phone> newseq;
+    Phone tmp;
+    for (int i=0; i<48; i++) tmp.features[i] = 0;
+    int index = 0;
+    cnt = 0;
+    for (int z=mid.size()-1; z>=0; z--, index++)
+    {
+      if (z == mid.size()-1 || mid[z] == mid[z+1])
+      {
+        cnt ++;
+        for (int i=0; i<48; i++) tmp.features[i] += std::exp(seq[index].features[i]);
+      }
+      else
+      {
+        for (int i=0; i<48; i++) tmp.features[i] = std::log(tmp.features[i] / cnt);
+        newseq.push_back(tmp);
+        for (int i=0; i<48; i++) tmp.features[i] = 0;
+        cnt = 0;
+      }
+    }
+    for (int i=0; i<48; i++) tmp.features[i] = std::log(tmp.features[i] / cnt);
+    newseq.push_back(tmp);
+    viterbi2(newseq, N, fout);
   }
 }
