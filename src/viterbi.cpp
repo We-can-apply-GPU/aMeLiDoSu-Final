@@ -170,7 +170,7 @@ void viterbi2(std::vector<Phone> &seq, int N, std::ofstream &fout)
       {
         if (i == j) continue;
         int z = 0;
-        for (auto p = pre[i].begin(); p != pre[i].end() && z < N; p++)
+        for (auto p = pre[i].begin(); p != pre[i].end() && z < 2*N; p++)
         {
           State *tmp = memory+top;
           if (++top == SIZE)
@@ -191,7 +191,7 @@ void viterbi2(std::vector<Phone> &seq, int N, std::ofstream &fout)
   for (int i=0; i<39; i++)
   {
     int z = 0;
-    for (auto p = pre[i].begin(); p != pre[i].end(), z < N; p++, z++)
+    for (auto p = pre[i].begin(); p != pre[i].end(), z < 2*N; p++, z++)
       now[0].push_back(*p);
   }
   std::sort(now[0].begin(), now[0].end(), PointerCompare);
