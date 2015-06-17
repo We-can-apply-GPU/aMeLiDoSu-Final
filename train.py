@@ -110,6 +110,7 @@ def main():
         import pickle
         fout = open("model/{}/{}x{:.2f}".format(MODEL_NAME, epoch, accu * 100), "w")
         pickle.dump(lasagne.layers.get_all_param_values(output_layer), fout)
+        fout.close()
 
 if __name__ == '__main__':
   main()
