@@ -57,7 +57,7 @@ struct Phone
 
 struct State
 {
-  std::vector<int> route;
+  int route[1000];
   float score;
   bool operator < (const State &t) const
   {
@@ -70,15 +70,13 @@ void viterbi(std::vector<Phone> &seq, int N, std::ofstream &fout)
   std::vector<State> pre[48], now[48];
   for (int j=0; j<48; j++)
   {
-    std::vector<int> route {j};
-    float score = seq.front().features[j];
-    pre[j].push_back((State){route, score});
+    State tmp;
+    tmp.route[0] = j;
+    tmp.score = seq.front().features[j];
+    pre[j].push_back(tmp);
   }
-  for (int i=0; i<pre[0].size(); i++)
-  {
-    std::cout << pre[0][i].score << std::endl;
-  }
-  for (auto it = seq.begin()+1; it != seq.begin()+2; it++)
+  int phone = 1;
+  for (auto it = seq.begin()+1; it != seq.end(); it++, phone++)
   {
     for (int j=0; j<48; j++)
     {
@@ -86,11 +84,13 @@ void viterbi(std::vector<Phone> &seq, int N, std::ofstream &fout)
       for (int i=0; i<48; i++)
       {
         int z = 0;
-        for (auto p = pre[i].begin(); p != pre[i].end(), z < N; p++, z++)
+        for (auto p = pre[i].begin(); p != pre[i].end() && z < N; p++, z++)
         {
           State tmp;
-          tmp.route = p->route;
-          tmp.route.push_back(j);
+          int r = 0;
+          for (r=0; r<phone; r++)
+            tmp.route[r] = p->route[r];
+          tmp.route[r] = j;
           tmp.score = p->score + it->features[j] + trans_prob[i][j];
           now[j].push_back(tmp);
         }
@@ -99,6 +99,21 @@ void viterbi(std::vector<Phone> &seq, int N, std::ofstream &fout)
     }
     for (int j=0; j<48; j++)
       pre[j] = now[j];
+  }
+  now[0].clear();
+  for (int i=0; i<48; i++)
+  {
+    int z = 0;
+    for (auto p = pre[i].begin(); p != pre[i].end(), z < N; p++, z++)
+      now[0].push_back(*p);
+  }
+  std::sort(now[0].begin(), now[0].end());
+  int z = 0;
+  for (auto p = now[0].begin(); p != now[0].end() && z < N; p++, z++)
+  {
+    for (int i=0; i<seq.size(); i++)
+      fout << trans.index2b[p->route[i]] << " ";
+    fout << p->score << std::endl;
   }
 }
 
@@ -120,6 +135,7 @@ int main()
     pre = next+1;
 
     int cnt = std::stoi(line.substr(pre));
+    std::cout << cnt << std::endl;
     while(cnt--)
     {
       Phone tmp;
