@@ -1,6 +1,7 @@
 data/
 bin/
 model/
+Lexicon_WFST/example
 *.pyc
 *.o
 
