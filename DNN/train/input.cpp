@@ -74,39 +74,30 @@ void get_fbank(std::ifstream& arkin, std::vector<Phone>& phones)
 
 int main()
 {
-  std::ifstream trainin("data/fbank/train.ark");
-  std::ifstream labin("data/state_label/train.lab");
-  std::ifstream testin("data/fbank/test.ark");
+  std::ifstream trainin("train.ark");
+  std::ifstream labin("train.1943");
 
-  std::ofstream trainout("data/train.dat");
-  std::ofstream testout("data/test.dat");
-  std::ofstream validout("data/valid.dat");
+  std::ofstream trainout("train.dat");
+  std::ofstream validout("valid.dat");
 
   std::string line;
-  std::vector<Phone> train, test;
+  std::vector<Phone> train;
 
   std::map<std::string, int> id2index;
 
   get_fbank(trainin, train);
-  get_fbank(testin, test);
 
   std::vector<float> mean(train[0].value.size(), 0), var(train[0].value.size(), 0);
   int rows = 0;
   for (int i=0; i<train.size(); i++, rows++)
     for (int j=0; j<train[i].value.size(); j++)
       mean[j] += train[i].value[j];
-  for (int i=0; i<test.size(); i++, rows++)
-    for (int j=0; j<test[i].value.size(); j++)
-      mean[j] += test[i].value[j];
   for (int i=0; i<mean.size(); i++)
     mean[i] /= rows;
 
   for (int i=0; i<train.size(); i++)
     for (int j=0; j<train[i].value.size(); j++)
       var[j] += (train[i].value[j]-mean[j]) * (train[i].value[j]-mean[j]);
-  for (int i=0; i<test.size(); i++)
-    for (int j=0; j<test[i].value.size(); j++)
-      var[j] += (test[i].value[j]-mean[j]) * (test[i].value[j]-mean[j]);
   for (int i=0; i<mean.size(); i++)
   {
     var[i] /= rows;
@@ -116,20 +107,10 @@ int main()
   for (int i=0; i<train.size(); i++)
     for (int j=0; j<train[i].value.size(); j++)
       train[i].value[j] = (train[i].value[j] - mean[j])/var[j];
-  for (int i=0; i<test.size(); i++)
-    for (int j=0; j<test[i].value.size(); j++)
-      test[i].value[j] = (test[i].value[j] - mean[j])/var[j];
-
-  std::sort(train.begin(), train.end());
-  std::sort(test.begin(), test.end());
-  for (int i=0; i<train.size(); i++)
-    id2index[train[i].speaker_id+"_"+train[i].sequence_id+"_"+std::to_string(train[i].phone_id)] = i;
 
   int cnt = 0;
   while (getline(labin, line))
   {
-    cnt += 1;
-
     size_t pre = 0, next;
     next = line.find('_');
     std::string speaker_id = line.substr(pre, next-pre);
@@ -142,11 +123,10 @@ int main()
     next = line.find(',', pre);
     int phone_id = std::stoi(line.substr(pre, next-pre));
     pre = next+1;
-    
-    auto search = id2index.find(speaker_id+"_"+sequence_id+"_"+std::to_string(phone_id));
 
-    if (search != id2index.end())
-      train[search->second].ans = std::stoi(line.substr(pre));
+    train[cnt].ans = std::stoi(line.substr(pre));
+      
+    cnt ++;
   }
 
   std::random_device rd;
@@ -177,16 +157,6 @@ int main()
 
     if (train[i].phone_id == train[i+4].phone_id - 4)
       validout << std::to_string(train[i+2].ans)+" "+train[i].get_string()+" "+train[i+1].get_string()+" "+train[i+2].get_string()+" "+train[i+3].get_string()+" "+train[i+4].get_string() << std::endl;
-  }
-
-  for (int z=0; z<test.size()-4; z++)
-  {
-    int i = z;
-    if (test[i].phone_id == 1)
-      testout << test[i].speaker_id << "_" << test[i].sequence_id << std::endl;
-
-    if (test[i].phone_id == test[i+4].phone_id - 4)
-      testout << test[i].get_string()+" "+test[i+1].get_string()+" "+test[i+2].get_string()+" "+test[i+3].get_string()+" "+test[i+4].get_string() << std::endl;
   }
 }
 

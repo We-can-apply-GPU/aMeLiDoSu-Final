@@ -11,6 +11,30 @@ import random
 from StringIO import StringIO
 from settings import *
 
+def load_transition(to=39):
+    file = open("../../conf/state_48_39.map");
+    trans = np.zeros((1943, to), dtype=np.float32)
+    transmap = np.zeros((1943,), dtype=np.int32)
+    lines = file.readlines()
+    phones = dict()
+    for i, line in enumerate(lines):
+        lines[i] = line.split("\t")
+        if to == 48:
+            phones[lines[i][1]]=0
+        else:
+            phones[lines[i][2]]=0
+    phones = collections.OrderedDict(sorted(phones.items()))
+    for i, k in enumerate(phones):
+        phones[k] = i
+    for line in lines:
+        if to == 48:
+            trans[int(line[0]), phones[line[1]]] = 1
+            transmap[int(line[0])] = phones[line[1]]
+        else:
+            trans[int(line[0]), phones[line[2]]] = 1
+            transmap[int(line[0])] = phones[line[2]]
+    return trans, transmap
+
 def load_data(fin, data):
     OK = True
     lines = []
@@ -70,22 +94,21 @@ def main():
     print("Building model and compile theano...")
     output_layer = build_model(input_dim = 350, output_dim = 1943)
     if len(sys.argv) == 2:
-        print("loading model {}/{}".format(MODEL_NAME, sys.argv[1]))
-        fin = open("model/{}/{}".format(MODEL_NAME, sys.argv[1]))
+        print("loading model {}".format(sys.argv[1]))
+        fin = open("../model/{}".format(sys.argv[1]))
         import pickle
         lasagne.layers.set_all_param_values(output_layer, pickle.load(fin))
     iter_funcs = create_iter_functions(data, output_layer)
     print("Training")
-    trainin = open("data/train.dat")
-    validin = open("data/valid.dat")
+    trainin = open("train.dat")
+    validin = open("valid.dat")
     epoch = 0
     while True:
-
         accu = 0
         cnt = 0
         now = time.time()
         while True:
-            X, Y, OK, trainin = load_data(trainin, "data/train.dat")
+            X, Y, OK, trainin = load_data(trainin, "train.dat")
             if not OK:
                 break
             accu += iter_funcs['train'](X, Y)
@@ -97,7 +120,7 @@ def main():
         cnt = 0
         now = time.time()
         while True:
-            X, Y, OK, validin = load_data(validin, "data/valid.dat")
+            X, Y, OK, validin = load_data(validin, "valid.dat")
             if not OK:
                 break
             accu += iter_funcs['valid'](X, Y)
@@ -108,7 +131,7 @@ def main():
 
         epoch += 1
         import pickle
-        fout = open("model/{}/{}x{:.2f}".format(MODEL_NAME, epoch, accu * 100), "w")
+        fout = open("../model/{}x{:.2f}".format(epoch, accu * 100), "w")
         pickle.dump(lasagne.layers.get_all_param_values(output_layer), fout)
         fout.close()
 

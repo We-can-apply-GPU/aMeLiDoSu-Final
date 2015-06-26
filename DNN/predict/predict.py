@@ -11,8 +11,31 @@ import random
 import pickle
 from settings import *
 
+def load_transition(to=39):
+    file = open("../../conf/state_48_39.map");
+    trans = np.zeros((1943, to), dtype=np.float32)
+    transmap = np.zeros((1943,), dtype=np.int32)
+    lines = file.readlines()
+    phones = dict()
+    for i, line in enumerate(lines):
+        lines[i] = line.split("\t")
+        if to == 48:
+            phones[lines[i][1]]=0
+        else:
+            phones[lines[i][2]]=0
+    phones = collections.OrderedDict(sorted(phones.items()))
+    for i, k in enumerate(phones):
+        phones[k] = i
+    for line in lines:
+        if to == 48:
+            trans[int(line[0]), phones[line[1]]] = 1
+            transmap[int(line[0])] = phones[line[1]]
+        else:
+            trans[int(line[0]), phones[line[2]]] = 1
+            transmap[int(line[0])] = phones[line[2]]
+    return trans, transmap
 def load_data():
-    fin = open("data/hw2test.dat")
+    fin = open("test.dat")
     data = []
     seq = []
     index = 0
@@ -54,12 +77,12 @@ def main():
     X_num = len(data['X'])
     print("train data rows: {}".format(X_num))
     output_layer = build_model(input_dim = 350, output_dim = 1943, batch_size = None)
-    fin = open("model/4d1024/"+sys.argv[1])
+    fin = open("../model/"+sys.argv[1])
     lasagne.layers.set_all_param_values(output_layer, pickle.load(fin))
     predict = create_iter_functions(data, output_layer)
 
     index = 0
-    fout = open("data/hw2prob.dat", "w")
+    fout = open("../../HMM/prob.dat", "w")
     for key, x, y in data['seq']:
         pred = predict(data['X'][x:y])
         print(key, x, y, sep="\t")
