@@ -6,7 +6,7 @@
 
 Trans::Trans()
 {
-  std::ifstream mapin("data/conf/state_48_39.map");
+  std::ifstream mapin("../conf/state_48_39.map");
 
   std::string line;
   std::string tmp39[1943];
@@ -40,7 +40,7 @@ Trans::Trans()
   }
   for (int i=0; i<1943; i++) c2b[i] = a2index[tmp48[i]];
 
-  std::ifstream chrin("data/conf/48_idx_chr.map");
+  std::ifstream chrin("../conf/48_idx_chr.map");
   while (getline(chrin, line))
   {
     std::istringstream stream(line);
