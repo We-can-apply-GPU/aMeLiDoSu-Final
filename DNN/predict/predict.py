@@ -67,10 +67,10 @@ def create_iter_functions(data, output_layer):
 
 def main():
     print("Loading data...")
-    if len(sys.argv) == 3 and sys.argv[2] == "48":
-        trans, transmap = load_transition(48);
-    else:
+    if len(sys.argv) == 3 and sys.argv[2] == "39":
         trans, transmap = load_transition(39);
+    else:
+        trans, transmap = load_transition(48);
     data = load_data()
     data['trans'] = theano.shared(trans, borrow=True)
     print("Building model and compile theano...")
@@ -82,7 +82,7 @@ def main():
     predict = create_iter_functions(data, output_layer)
 
     index = 0
-    fout = open("../../HMM/prob.dat", "w")
+    fout = open("../vote/"+sys.argv[1], "w")
     for key, x, y in data['seq']:
         pred = predict(data['X'][x:y])
         print(key, x, y, sep="\t")

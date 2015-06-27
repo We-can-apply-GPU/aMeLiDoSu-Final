@@ -76,28 +76,40 @@ int main()
 {
   std::ifstream trainin("train.ark");
   std::ifstream labin("train.1943");
+  std::ifstream testin("../predict/test.ark");
 
   std::ofstream trainout("train.dat");
   std::ofstream validout("valid.dat");
 
   std::string line;
-  std::vector<Phone> train;
+  std::vector<Phone> train, test;
 
   std::map<std::string, int> id2index;
 
   get_fbank(trainin, train);
+  get_fbank(testin, test);
 
   std::vector<float> mean(train[0].value.size(), 0), var(train[0].value.size(), 0);
   int rows = 0;
   for (int i=0; i<train.size(); i++, rows++)
     for (int j=0; j<train[i].value.size(); j++)
       mean[j] += train[i].value[j];
+
+   for (int i=0; i<test.size(); i++, rows++)
+    for (int j=0; j<test[i].value.size(); j++)
+      mean[j] += test[i].value[j];
+
   for (int i=0; i<mean.size(); i++)
     mean[i] /= rows;
 
   for (int i=0; i<train.size(); i++)
     for (int j=0; j<train[i].value.size(); j++)
       var[j] += (train[i].value[j]-mean[j]) * (train[i].value[j]-mean[j]);
+
+  for (int i=0; i<test.size(); i++)
+    for (int j=0; j<test[i].value.size(); j++)
+      var[j] += (test[i].value[j]-mean[j]) * (test[i].value[j]-mean[j]);
+
   for (int i=0; i<mean.size(); i++)
   {
     var[i] /= rows;

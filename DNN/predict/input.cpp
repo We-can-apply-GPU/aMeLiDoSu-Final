@@ -90,12 +90,22 @@ int main()
   for (int i=0; i<train.size(); i++, rows++)
     for (int j=0; j<train[i].value.size(); j++)
       mean[j] += train[i].value[j];
+
+   for (int i=0; i<test.size(); i++, rows++)
+    for (int j=0; j<test[i].value.size(); j++)
+      mean[j] += test[i].value[j];
+
   for (int i=0; i<mean.size(); i++)
     mean[i] /= rows;
 
   for (int i=0; i<train.size(); i++)
     for (int j=0; j<train[i].value.size(); j++)
       var[j] += (train[i].value[j]-mean[j]) * (train[i].value[j]-mean[j]);
+
+  for (int i=0; i<test.size(); i++)
+    for (int j=0; j<test[i].value.size(); j++)
+      var[j] += (test[i].value[j]-mean[j]) * (test[i].value[j]-mean[j]);
+
   for (int i=0; i<mean.size(); i++)
   {
     var[i] /= rows;
