@@ -9,11 +9,13 @@ rate = []
 sum = 0
 for i in range(cnt):
     file.append(open(sys.argv[i+1], "r"))
-    rate.append(int(sys.argv[i+1]))
+    rate.append(float(sys.argv[i+1]))
     sum += rate[i]
 
 for i in range(cnt):
-    rate[i] = float(rate[i])/sum
+    rate[i] = rate[i]/sum
+
+print(rate)
 
 fout = open("vote", "w")
 
@@ -23,6 +25,7 @@ while True:
         line = file[i].readline()
     if not line:
         break
+    print(line.rstrip())
     print(line.rstrip(), file=fout)
     seq = int(line.rstrip().split(" ")[1])
     for i in range(seq):
